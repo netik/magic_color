@@ -1,0 +1,54 @@
+IP address is always 192.168.2.2 port 5000
+
+There is some sort of init sequence to check to see if we're connected.
+
+Lots of code here is for UI or to maintain the mobile's wifi connection. We do not give a shit about that. 
+
+The protocol appears to be a raw byte protocol. No text. 
+
+Protocol runs in a sub-thread "sendMsg" That protocol is specified in protocol.java
+
+It seems that packets are signed with a checksum and may be reversed for network-byte-ordering? 
+
+It also looks like there are multiple modes. Either you are sending raw RGB values or you are sending a mode # ? 
+
+
+public byte[] getAll()
+{
+  getCurCheckValue(StaticClass.bar_No, StaticClass.red, StaticClass.green, StaticClass.blue, StaticClass.Key_Num);
+  this.all[0] = this.frameHead[0];
+  this.all[1] = this.frameHead[1];
+  this.all[2] = 0;
+  this.all[3] = ((byte)StaticClass.mode);
+  this.all[4] = ((byte)StaticClass.Key_Num);
+  this.all[5] = ((byte)StaticClass.bar_No);
+  this.all[6] = this.colorRGB[0];
+  this.all[7] = this.colorRGB[1];
+  this.all[8] = this.colorRGB[2];
+  this.all[9] = this.checkValue;
+  exchangeBytes(this.all);
+  return this.all;
+}
+
+public byte getCheckValue()
+{
+  return this.checkValue;
+}
+
+public byte[] getColorRGB()
+{
+  return this.colorRGB;
+}
+
+public byte getCurCheckValue(int paramInt1, int paramInt2, int paramInt3, int paramInt4, int paramInt5)
+{
+  int i = paramInt5 + (paramInt4 + (paramInt3 + (paramInt2 + (paramInt1 + 255))) + this.mode);
+  if (i == 0)
+    return (byte)i;
+  int j = i % 255;
+  if (j == 0)
+    j = 255;
+  this.checkValue = ((byte)j);
+  return this.checkValue;
+}
+
