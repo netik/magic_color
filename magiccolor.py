@@ -30,22 +30,24 @@ class Magiccolor:
     self._mode = 3
 
   def connect(self):
-    print "trying..."
+    if self.DEBUG:
+      print "connect..." 
     self._socket = create_connection((self._ip, self._port), 10)
-    print self._socket
-    print "connected"
+
+    if self.DEBUG:
+      print "connected"
 
   def sendMsg(self,p):
     # I think based on mode we send the right thing here?
     #print self._socket.send(p.getAll())
     x=0
 
-    if DEBUG:
+    if self.DEBUG:
       for b in p.spi_getAll():
         print "%d - %x" % ( x, b )
         x = x + 1
 
-    print self._socket.send(p.spi_getAll())
+    self._socket.send(p.spi_getAll())
 
 m = Magiccolor()
 m.connect()
@@ -72,5 +74,45 @@ p = Protocol()
 #p.keyValue = p.findProgram('WHITE')
 
 # this turns things off.
-p.keyNum=p.MODE_OFF
+try:
+  if sys.argv[1] == '-l':
+    x=0
+    y=0
+    print "Program listing\n\n"
+    for c in p.COLORLIST:
+      x=x+1
+      if y == 5:
+        print 
+        y=0
+      y=y+1
+
+      sys.stdout.write("%02d) %-12s " % (x,c))
+    print "\n"
+    sys.exit(0)
+
+  if sys.argv[1] == 'on': 
+    p.keyNum=p.MODE_OFF
+    p.keyNum = 3
+    p.keyValue = p.findProgram('WHITE')
+
+  if sys.argv[1] == 'pause': 
+    p.keyNum = 5
+    p.keyValue = 0
+
+  if sys.argv[1] == 'off': 
+    p.keyNum=p.MODE_OFF
+
+  if sys.argv[1] != 'on' and sys.argv[1] != 'off' and sys.argv[1] != 'pause':
+    if p.findProgram(sys.argv[1]) != None:
+      p.keyNum = 3
+      p.keyValue = p.findProgram(sys.argv[1])
+    else:
+      print 'Color/Program name not found'
+      sys.exit(1)
+
+except KeyError:
+  print "Usage: %s on|off|programname [speed]" % sys.argv[0]
+  sys.exit(1)
+
+
 m.sendMsg(p)
